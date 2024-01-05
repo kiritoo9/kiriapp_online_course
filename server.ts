@@ -11,6 +11,7 @@ import { configs } from "./app/configs/configs";
  * Load Routes
  */
 import { welcome } from "./app/src/welcome/routes";
+import { users } from "./app/src/masters/users/routes";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(express.static(__dirname + "/cdn"));
  * Init routes
  */
 app.use("/", welcome);
+app.use("/users", users);
 
 
 /**

@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model answers {
+  id          String     @id @db.Uuid
+  question_id String?    @db.Uuid
+  answer      String?
+  points      Float?     @default(0)
+  attachments Json?
+  deleted     Boolean?   @default(false)
+  created_at  DateTime?  @db.Timestamp(6)
+  created_by  String?    @db.VarChar(200)
+  updated_at  DateTime?  @db.Timestamp(6)
+  updated_by  String?    @db.VarChar(200)
+  questions   questions? @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model cdns {
+  id         String    @id @db.Uuid
+  key_id     String?   @db.Uuid
+  tablename  String?   @db.VarChar(100)
+  filename   String?
+  filesize   String?
+  fileext    String?
+  filetype   String?   @default("image") @db.VarChar(10)
+  deleted    Boolean?  @default(false)
+  created_at DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(200)
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by String?   @db.VarChar(200)
+}
+
+model classes {
+  id           String         @id @db.Uuid
+  name         String?        @db.VarChar(100)
+  description  String?
+  deleted      Boolean?       @default(false)
+  created_at   DateTime?      @db.Timestamp(6)
+  created_by   String?        @db.VarChar(200)
+  updated_at   DateTime?      @db.Timestamp(6)
+  updated_by   String?        @db.VarChar(200)
+  exam_classes exam_classes[]
+  user_classes user_classes[]
+}
+
+model configs {
+  id         String    @id @db.Uuid
+  key        String?
+  value      String?
+  deleted    Boolean?  @default(false)
+  created_at DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(200)
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by String?   @db.VarChar(200)
+}
+
+model exam_classes {
+  id         String    @id @db.Uuid
+  exam_id    String?   @db.Uuid
+  class_id   String?   @db.Uuid
+  deleted    Boolean?  @default(false)
+  created_at DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(200)
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by String?   @db.VarChar(200)
+  classes    classes?  @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exams      exams?    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model exam_questions {
+  id                String              @id @db.Uuid
+  exam_id           String?             @db.Uuid
+  question_id       String?             @db.Uuid
+  deleted           Boolean?            @default(false)
+  created_at        DateTime?           @db.Timestamp(6)
+  created_by        String?             @db.VarChar(200)
+  updated_at        DateTime?           @db.Timestamp(6)
+  updated_by        String?             @db.VarChar(200)
+  exams             exams?              @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  questions         questions?          @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exam_user_answers exam_user_answers[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_results {
+  id           String    @id @db.Uuid
+  exam_id      String?   @db.Uuid
+  user_id      String?   @db.Uuid
+  corrected_by String?   @db.Uuid
+  result       Float?    @default(0)
+  notes        String?
+  deleted      Boolean?  @default(false)
+  created_at   DateTime? @db.Timestamp(6)
+  created_by   String?   @db.VarChar(200)
+  updated_at   DateTime? @db.Timestamp(6)
+  updated_by   String?   @db.VarChar(200)
+  exams        exams?    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model exam_user_answers {
+  id                String          @id @db.Uuid
+  exam_question_id  String?         @db.Uuid
+  user_id           String?         @db.Uuid
+  question_id       String?         @db.Uuid
+  answer_id         String?         @db.Uuid
+  answer_text       String?
+  answered_at       DateTime?       @db.Timestamp(6)
+  correction_points Float?          @default(0)
+  deleted           Boolean?        @default(false)
+  created_at        DateTime?       @db.Timestamp(6)
+  created_by        String?         @db.VarChar(200)
+  updated_at        DateTime?       @db.Timestamp(6)
+  updated_by        String?         @db.VarChar(200)
+  exam_questions    exam_questions? @relation(fields: [exam_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  questions         questions?      @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users?          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exams {
+  id             String           @id @db.Uuid
+  lesson_id      String?          @db.Uuid
+  type           String?          @default("T1") @db.Char(2)
+  status         String?          @default("S1") @db.Char(2)
+  duration       Decimal?         @default(0) @db.Decimal
+  minimum_result Float?           @default(0)
+  title          String?
+  description    String?
+  author         String?
+  deleted        Boolean?         @default(false)
+  created_at     DateTime?        @db.Timestamp(6)
+  created_by     String?          @db.VarChar(200)
+  updated_at     DateTime?        @db.Timestamp(6)
+  updated_by     String?          @db.VarChar(200)
+  exam_classes   exam_classes[]
+  exam_questions exam_questions[]
+  exam_results   exam_results[]
+  lessons        lessons?         @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model lessons {
+  id          String      @id @db.Uuid
+  name        String?     @db.VarChar(100)
+  description String?
+  deleted     Boolean?    @default(false)
+  created_at  DateTime?   @db.Timestamp(6)
+  created_by  String?     @db.VarChar(200)
+  updated_at  DateTime?   @db.Timestamp(6)
+  updated_by  String?     @db.VarChar(200)
+  exams       exams[]
+  questions   questions[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model questions {
+  id                String              @id @db.Uuid
+  lesson_id         String?             @db.Uuid
+  type              String?             @default("T1") @db.Char(2)
+  classes           Json?
+  tags              Json?
+  question          String?
+  points            Float?              @default(0)
+  attachments       Json?
+  deleted           Boolean?            @default(false)
+  created_at        DateTime?           @db.Timestamp(6)
+  created_by        String?             @db.VarChar(200)
+  updated_at        DateTime?           @db.Timestamp(6)
+  updated_by        String?             @db.VarChar(200)
+  answers           answers[]
+  exam_questions    exam_questions[]
+  exam_user_answers exam_user_answers[]
+  lessons           lessons?            @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model role_attributes {
+  id          String        @id @db.Uuid
+  role_id     String?       @db.Uuid
+  name        String?
+  description String?
+  deleted     Boolean?      @default(false)
+  created_at  DateTime?     @db.Timestamp(6)
+  created_by  String?       @db.VarChar(200)
+  updated_at  DateTime?     @db.Timestamp(6)
+  updated_by  String?       @db.VarChar(200)
+  roles       roles?        @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_values user_values[]
+}
+
+model roles {
+  id              String            @id @db.Uuid
+  name            String?           @db.VarChar(100)
+  description     String?
+  deleted         Boolean?          @default(false)
+  created_at      DateTime?         @db.Timestamp(6)
+  created_by      String?           @db.VarChar(200)
+  updated_at      DateTime?         @db.Timestamp(6)
+  updated_by      String?           @db.VarChar(200)
+  role_attributes role_attributes[]
+  user_roles      user_roles[]
+}
+
+model tags {
+  id          String    @id @db.Uuid
+  name        String?   @db.VarChar(100)
+  description String?
+  deleted     Boolean?  @default(false)
+  created_at  DateTime? @db.Timestamp(6)
+  created_by  String?   @db.VarChar(200)
+  updated_at  DateTime? @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(200)
+}
+
+model user_classes {
+  id         String    @id @db.Uuid
+  user_id    String?   @db.Uuid
+  class_id   String?   @db.Uuid
+  periode    String?   @db.VarChar(4)
+  is_active  Boolean?  @default(false)
+  deleted    Boolean?  @default(false)
+  created_at DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(200)
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by String?   @db.VarChar(200)
+  classes    classes?  @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_roles {
+  id         String    @id @db.Uuid
+  user_id    String?   @db.Uuid
+  role_id    String?   @db.Uuid
+  deleted    Boolean?  @default(false)
+  created_at DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(200)
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by String?   @db.VarChar(200)
+  roles      roles?    @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_values {
+  id                String           @id @db.Uuid
+  user_id           String?          @db.Uuid
+  role_attribute_id String?          @db.Uuid
+  value             String?
+  deleted           Boolean?         @default(false)
+  created_at        DateTime?        @db.Timestamp(6)
+  created_by        String?          @db.VarChar(200)
+  updated_at        DateTime?        @db.Timestamp(6)
+  updated_by        String?          @db.VarChar(200)
+  role_attributes   role_attributes? @relation(fields: [role_attribute_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users?           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id                String              @id @db.Uuid
+  email             String?             @db.VarChar(100)
+  password          String?             @db.VarChar(60)
+  fullname          String?             @db.VarChar(200)
+  phone             String?             @db.VarChar(15)
+  address           String?
+  deleted           Boolean?            @default(false)
+  created_at        DateTime?           @db.Timestamp(6)
+  created_by        String?             @db.VarChar(200)
+  updated_at        DateTime?           @db.Timestamp(6)
+  updated_by        String?             @db.VarChar(200)
+  exam_results      exam_results[]
+  exam_user_answers exam_user_answers[]
+  user_classes      user_classes[]
+  user_roles        user_roles[]
+  user_values       user_values[]
+}

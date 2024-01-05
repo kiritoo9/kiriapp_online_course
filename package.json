@@ -2,8 +2,12 @@
   "name": "kiriapp-online-course",
   "module": "server.ts",
   "type": "module",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "tsx": "^4.7.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
