@@ -12,6 +12,7 @@ import { configs } from "./app/configs/configs";
  */
 import { welcome } from "./app/src/welcome/routes";
 import { users } from "./app/src/masters/users/routes";
+import { lessons } from "./app/src/masters/lessons/routes";
 
 const app = express();
 
@@ -36,7 +37,7 @@ app.use(express.static(__dirname + "/cdn"));
  */
 app.use("/", welcome);
 app.use("/users", users);
-
+app.use("/lessons", lessons);
 
 /**
  * Routes error handler
