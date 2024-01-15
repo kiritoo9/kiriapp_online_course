@@ -6,11 +6,13 @@ import cors from "cors";
  * Load Configurations
  */
 import { configs } from "./app/configs/configs";
+import { verify } from "./app/middlewares/verify";
 
 /**
  * Load Routes
  */
 import { welcome } from "./app/src/welcome/routes";
+import { auth } from "./app/src/auth/routes";
 import { users } from "./app/src/masters/users/routes";
 import { lessons } from "./app/src/masters/lessons/routes";
 
@@ -36,8 +38,13 @@ app.use(express.static(__dirname + "/cdn"));
  * Init routes
  */
 app.use("/", welcome);
-app.use("/users", users);
-app.use("/lessons", lessons);
+app.use("/auth", auth);
+
+/**
+ * Masters
+ */
+app.use("/users", verify, users);
+app.use("/lessons", verify, lessons);
 
 /**
  * Routes error handler
