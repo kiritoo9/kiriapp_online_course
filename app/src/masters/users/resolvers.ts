@@ -23,6 +23,7 @@ import {
 } from "./../roles/businesses";
 
 import Joi from "joi";
+import { getToken } from "../../../helpers/token";
 const schema = Joi.object({
     email: Joi.string().required(),
     fullname: Joi.string().required(),
@@ -103,13 +104,18 @@ async function insert(req: Request, res: Response) {
         if (!role_exists) return res.status(404).json({ message: "role_id is not found or already deleted, try another one" });
 
         /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
+        /**
          * Prepare and insert into users
          */
         let user: any = {
             id: uuidv4(),
             ...body,
             created_at: new Date(),
-            created_by: "INJECTED"
+            created_by: loggedId
         }
         await insertUser(user);
 
@@ -121,7 +127,7 @@ async function insert(req: Request, res: Response) {
             user_id: user.id,
             role_id,
             created_at: new Date(),
-            created_by: "INJECTED"
+            created_by: loggedId
         }
         await insertUserRole(user_role);
 
@@ -135,7 +141,7 @@ async function insert(req: Request, res: Response) {
                 role_attribute_id: v.role_attribute_id,
                 value: v.value,
                 created_at: new Date(),
-                created_by: "INJECTED"
+                created_by: loggedId
             }
             await insertUserValue(user_values);
         }));
@@ -158,6 +164,11 @@ async function update(req: Request, res: Response) {
         let body = req.body;
         await schema.validateAsync(body);
 
+        /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
         let data: any = {
             id: req.params.id,
             email: body.email,
@@ -165,7 +176,7 @@ async function update(req: Request, res: Response) {
             phone: body.phone,
             address: body.address,
             updated_at: new Date(),
-            updated_by: "INJECTED"
+            updated_by: loggedId
         }
 
         /**
@@ -203,7 +214,7 @@ async function update(req: Request, res: Response) {
                 id: existing_role.id,
                 role_id,
                 updated_at: new Date(),
-                updated_by: "INJECTED"
+                updated_by: loggedId
             });
         } else {
             await insertUserRole({
@@ -211,7 +222,7 @@ async function update(req: Request, res: Response) {
                 user_id: data.id,
                 role_id,
                 created_at: new Date(),
-                created_by: "INJECTED"
+                created_by: loggedId
             });
         }
 
@@ -229,12 +240,12 @@ async function update(req: Request, res: Response) {
             if (value_exists) {
                 user_value["id"] = value_exists.id;
                 user_value["updated_at"] = new Date(),
-                    user_value["updated_by"] = "INJECTED";
+                    user_value["updated_by"] = loggedId;
                 await updateUserValue(user_value);
             } else {
                 user_value["id"] = uuidv4();
                 user_value["created_at"] = new Date(),
-                    user_value["created_by"] = "INJECTED";
+                    user_value["created_by"] = loggedId;
                 await insertUserValue(user_value);
             }
         }));
@@ -255,13 +266,18 @@ async function remove(req: Request, res: Response) {
         if (!exists) return res.status(404).json({ message: "Data is not found" });
 
         /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
+        /**
          * Update user
          */
         await updateUser({
             id,
             deleted: true,
             updated_at: new Date(),
-            updated_by: "INJECTED"
+            updated_by: loggedId
         });
 
         /**
@@ -269,7 +285,9 @@ async function remove(req: Request, res: Response) {
          */
         await updateUserRoleByUser({
             user_id: id,
-            deleted: true
+            deleted: true,
+            updated_at: new Date(),
+            updated_by: loggedId
         });
 
         /**
@@ -277,7 +295,9 @@ async function remove(req: Request, res: Response) {
          */
         await updateUserValueByUser({
             user_id: id,
-            deleted: true
+            deleted: true,
+            updated_at: new Date(),
+            updated_by: loggedId
         });
 
         res.status(201).json({ message: "Data is successfully deleted" });

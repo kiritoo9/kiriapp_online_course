@@ -14,6 +14,7 @@ import {
 } from "./businesses";
 
 import Joi from "joi";
+import { getToken } from "../../../helpers/token";
 const schema = Joi.object({
     name: Joi.string().required(),
     description: Joi.string().allow(null),
@@ -33,7 +34,7 @@ async function list(req: Request, res: Response) {
             data,
             totalPage
         });
-    } catch (error:any) {
+    } catch (error: any) {
         res.status(400).json({ error: error?.message });
     }
 }
@@ -47,7 +48,7 @@ async function detail(req: Request, res: Response) {
         const attributes = await getAttributesByRole(id);
 
         res.status(200).json({ data, attributes });
-    } catch (error:any) {
+    } catch (error: any) {
         res.status(400).json({ error: error?.message });
     }
 }
@@ -58,6 +59,11 @@ async function insert(req: Request, res: Response) {
         await schema.validateAsync(body);
 
         /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
+        /**
          * Preparing data to insert
          */
         const role: any = {
@@ -65,7 +71,7 @@ async function insert(req: Request, res: Response) {
             name: body.name,
             description: body.description,
             created_at: new Date(),
-            created_by: "INJECTED"
+            created_by: loggedId
         }
         let attributes: any = [];
         for (let i = 0; i < body.attributes.length; i++) {
@@ -75,7 +81,7 @@ async function insert(req: Request, res: Response) {
                 name: body.attributes[i].name,
                 description: body.attributes[i].description,
                 created_at: new Date(),
-                created_by: "INJECTED"
+                created_by: loggedId
             });
         }
 
@@ -102,6 +108,10 @@ async function update(req: Request, res: Response) {
         const exists = await getRoleById(id);
         if (!exists) return res.status(404).json({ message: "Data is not found" });
 
+        /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
 
         /**
          * Validate and update date
@@ -114,7 +124,7 @@ async function update(req: Request, res: Response) {
             name: body.name,
             description: body.description,
             updated_at: new Date(),
-            updated_by: "INJECTED"
+            updated_by: loggedId
         }
         let attributes: any = [];
         for (let i = 0; i < body.attributes.length; i++) {
@@ -146,18 +156,18 @@ async function update(req: Request, res: Response) {
         await Promise.all(attributes.map((async (v: any) => {
             if (v.id) {
                 v.updated_at = new Date();
-                v.updated_by = "INJECTED";
+                v.updated_by = loggedId;
                 await updateRoleAttribute(v);
             } else {
                 v.id = uuidv4();
                 v.created_at = new Date();
-                v.created_by = "INJECTED";
+                v.created_by = loggedId;
                 await insertRoleAttribute(v);
             }
         })));
 
         res.status(201).json({ message: "Data is successfully updated", data: { role, attributes } });
-    } catch (error:any) {
+    } catch (error: any) {
         throw error;
     }
 }
@@ -171,17 +181,30 @@ async function remove(req: Request, res: Response) {
         const exists = await getRoleById(id);
         if (!exists) return res.status(404).json({ message: "Data is not found" });
 
+
+        /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
         /**
          * Update role and role_attributes
          */
-        await updateRole({ id, deleted: true });
+        await updateRole({
+            id,
+            deleted: true,
+            updated_at: new Date(),
+            updated_by: loggedId
+        });
         await updateRoleAttribute({
             role_id: id,
-            deleted: true
+            deleted: true,
+            updated_at: new Date(),
+            updated_by: loggedId
         }, true);
 
         res.status(201).json({ message: "Data is successfully deleted" });
-    } catch (error:any) {
+    } catch (error: any) {
         res.status(400).json({ error: error?.message });
     }
 }
