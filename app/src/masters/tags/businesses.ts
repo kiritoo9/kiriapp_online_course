@@ -25,7 +25,7 @@ async function lists(req: Request) {
     let offset = 0;
     if (page > 0 && limit > 0) offset = (page * limit) - limit;
 
-    let data = await prisma.lessons.findMany({
+    let data = await prisma.tags.findMany({
         take: parseInt(limit),
         skip: offset,
         orderBy: defaultOrder,
@@ -61,7 +61,7 @@ async function counts(req: Request) {
     let limit: any = req.query?.limit !== undefined ? req.query.limit : 10;
     let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString() : "";
 
-    let count = await prisma.lessons.count({
+    let count = await prisma.tags.count({
         where: {
             OR: [
                 {
@@ -88,18 +88,11 @@ async function counts(req: Request) {
     return totalPage;
 }
 
-async function getLessonById(id: any) {
+async function getTagById(id: any) {
     try {
-        return await prisma.lessons.findFirst({
+        return await prisma.tags.findFirst({
             where: {
-                id,
-                deleted: false
-            },
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                created_at: true
+                id
             }
         });
     } catch (error) {
@@ -107,21 +100,21 @@ async function getLessonById(id: any) {
     }
 }
 
-async function insertLesson(data: any = {}) {
+async function insertTag(data: any = {}) {
     try {
-        await prisma.lessons.create({
+        return await prisma.tags.create({
             data: data
-        });
+        })
     } catch (error) {
         throw error;
     }
 }
 
-async function updateLesson(data: any = {}) {
+async function updateTag(data: any = {}) {
     try {
-        await prisma.lessons.update({
+        return await prisma.tags.update({
             where: {
-                id: data.id
+                id: data?.id
             },
             data: data
         })
@@ -133,7 +126,7 @@ async function updateLesson(data: any = {}) {
 export {
     lists,
     counts,
-    getLessonById,
-    insertLesson,
-    updateLesson
+    getTagById,
+    insertTag,
+    updateTag
 }

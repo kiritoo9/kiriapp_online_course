@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function listing(req: Request) {
     let page: any = req.query?.page !== undefined ? req.query.page : 1;
     let limit: any = req.query?.limit !== undefined ? req.query.limit : 10;
-    let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString().toLowerCase() : "";
+    let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString() : "";
     let orderBy: string = req.query?.orderBy !== undefined ? req.query.orderBy.toString() : "";
 
     let defaultOrder: any = {
@@ -41,13 +41,15 @@ async function listing(req: Request) {
                 {
                     deleted: false,
                     email: {
-                        contains: keywords
+                        contains: keywords,
+                        mode: "insensitive"
                     }
                 },
                 {
                     deleted: false,
                     fullname: {
-                        contains: keywords
+                        contains: keywords,
+                        mode: "insensitive"
                     }
                 }
             ]
@@ -58,7 +60,7 @@ async function listing(req: Request) {
 
 async function counts(req: Request) {
     let limit: any = req.query?.limit !== undefined ? req.query.limit : 10;
-    let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString().toLowerCase() : "";
+    let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString() : "";
 
     let count = await prisma.users.count({
         where: {
@@ -66,13 +68,15 @@ async function counts(req: Request) {
                 {
                     deleted: false,
                     email: {
-                        contains: keywords
+                        contains: keywords,
+                        mode: "insensitive"
                     }
                 },
                 {
                     deleted: false,
                     fullname: {
-                        contains: keywords
+                        contains: keywords,
+                        mode: "insensitive"
                     }
                 }
             ]

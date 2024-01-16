@@ -25,7 +25,7 @@ async function lists(req: Request) {
     let offset = 0;
     if (page > 0 && limit > 0) offset = (page * limit) - limit;
 
-    let data = await prisma.lessons.findMany({
+    let data = await prisma.classes.findMany({
         take: parseInt(limit),
         skip: offset,
         orderBy: defaultOrder,
@@ -61,7 +61,7 @@ async function counts(req: Request) {
     let limit: any = req.query?.limit !== undefined ? req.query.limit : 10;
     let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString() : "";
 
-    let count = await prisma.lessons.count({
+    let count = await prisma.classes.count({
         where: {
             OR: [
                 {
@@ -88,18 +88,12 @@ async function counts(req: Request) {
     return totalPage;
 }
 
-async function getLessonById(id: any) {
+async function getClassById(id: any) {
     try {
-        return await prisma.lessons.findFirst({
+        return prisma.classes.findFirst({
             where: {
                 id,
                 deleted: false
-            },
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                created_at: true
             }
         });
     } catch (error) {
@@ -107,9 +101,9 @@ async function getLessonById(id: any) {
     }
 }
 
-async function insertLesson(data: any = {}) {
+async function insertClass(data: any = {}) {
     try {
-        await prisma.lessons.create({
+        return prisma.classes.create({
             data: data
         });
     } catch (error) {
@@ -117,14 +111,14 @@ async function insertLesson(data: any = {}) {
     }
 }
 
-async function updateLesson(data: any = {}) {
+async function updateClass(data: any = {}) {
     try {
-        await prisma.lessons.update({
+        return prisma.classes.update({
             where: {
-                id: data.id
+                id: data?.id
             },
             data: data
-        })
+        });
     } catch (error) {
         throw error;
     }
@@ -133,7 +127,7 @@ async function updateLesson(data: any = {}) {
 export {
     lists,
     counts,
-    getLessonById,
-    insertLesson,
-    updateLesson
+    getClassById,
+    insertClass,
+    updateClass
 }
