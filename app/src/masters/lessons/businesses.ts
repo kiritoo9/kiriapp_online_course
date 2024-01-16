@@ -102,7 +102,7 @@ async function getLessonById(id: any) {
                 created_at: true
             }
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -112,7 +112,7 @@ async function insertLesson(data: any = {}) {
         await prisma.lessons.create({
             data: data
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -125,7 +125,7 @@ async function updateLesson(data: any = {}) {
             },
             data: data
         })
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }

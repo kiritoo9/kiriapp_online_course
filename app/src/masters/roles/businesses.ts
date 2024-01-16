@@ -106,7 +106,7 @@ async function insertRole(data: any = {}) {
         return await prisma.roles.create({
             data
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -119,7 +119,7 @@ async function updateRole(data: any = {}) {
             },
             data: data
         })
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -137,7 +137,7 @@ async function getAttributesByRole(role_id: any) {
                 description: true
             }
         })
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -147,7 +147,7 @@ async function insertRoleAttribute(data: any = {}) {
         return await prisma.role_attributes.create({
             data
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -167,7 +167,7 @@ async function updateRoleAttribute(data: any = {}, byRole = false) {
             where: where,
             data: data
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -182,7 +182,7 @@ async function deleteAttributeById(id: any) {
                 deleted: true
             }
         })
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }

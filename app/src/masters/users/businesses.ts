@@ -119,7 +119,7 @@ async function getUserById(id: any) {
 async function insertUser(data: any = {}) {
     try {
         return await prisma.users.create({ data: data })
-    } catch (error) {
+    } catch (error: any) {
         throw error;
     }
 }
@@ -132,7 +132,7 @@ async function updateUser(data: any = {}) {
             },
             data: data
         });
-    } catch (error) {
+    } catch (error: any) {
         throw error;
     }
 }
@@ -140,7 +140,7 @@ async function updateUser(data: any = {}) {
 async function insertUserRole(data: any = {}) {
     try {
         return await prisma.user_roles.create({ data: data });
-    } catch (error) {
+    } catch (error: any) {
         throw error;
     }
 }
@@ -158,7 +158,7 @@ async function getRoleByUser(user_id: any = {}) {
                 role_id: true
             }
         })
-    } catch (error) {
+    } catch (error: any) {
         throw error;
     }
 }
@@ -171,6 +171,90 @@ async function updateUserRole(data: any = {}) {
                 id: data.id
             }
         });
+    } catch (error: any) {
+        throw error;
+    }
+}
+
+async function updateUserRoleByUser(data: any = {}) {
+    try {
+        return await prisma.user_roles.updateMany({
+            where: {
+                user_id: data?.user_id
+            },
+            data
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getUserValuesByUser(user_id: any) {
+    try {
+        return await prisma.user_values.findMany({
+            where: {
+                deleted: false,
+                user_id
+            },
+            include: {
+                role_attributes: {
+                    select: {
+                        name: true,
+                        description: true
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getUserValueByAttribute(user_id: any, role_attribute_id: any) {
+    try {
+        return await prisma.user_values.findFirst({
+            where: {
+                deleted: false,
+                user_id,
+                role_attribute_id
+            },
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function insertUserValue(data: any = {}) {
+    try {
+        return await prisma.user_values.create({
+            data
+        });
+    } catch (error: any) {
+        throw error;
+    }
+}
+
+async function updateUserValue(data: any = {}) {
+    try {
+        return await prisma.user_values.update({
+            where: {
+                id: data?.id
+            },
+            data
+        })
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function updateUserValueByUser(data: any = {}) {
+    try {
+        return await prisma.user_values.updateMany({
+            where: {
+                user_id: data?.user_id
+            },
+            data
+        })
     } catch (error) {
         throw error;
     }
@@ -183,7 +267,13 @@ export {
     getUserById,
     insertUser,
     updateUser,
+    updateUserRoleByUser,
     getRoleByUser,
     insertUserRole,
-    updateUserRole
+    updateUserRole,
+    getUserValuesByUser,
+    getUserValueByAttribute,
+    insertUserValue,
+    updateUserValue,
+    updateUserValueByUser
 }

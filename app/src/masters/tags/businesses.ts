@@ -95,7 +95,7 @@ async function getTagById(id: any) {
                 id
             }
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -105,7 +105,7 @@ async function insertTag(data: any = {}) {
         return await prisma.tags.create({
             data: data
         })
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -118,7 +118,7 @@ async function updateTag(data: any = {}) {
             },
             data: data
         })
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }

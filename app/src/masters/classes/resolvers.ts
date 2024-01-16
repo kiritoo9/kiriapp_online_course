@@ -24,8 +24,8 @@ async function list(req: Request, res: Response) {
             data,
             totalPage
         });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -37,8 +37,8 @@ async function detail(req: Request, res: Response) {
         if (!data) return res.status(404).json({ message: "Data is not found" });
 
         res.status(200).json({ data });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -57,8 +57,8 @@ async function insert(req: Request, res: Response) {
         await insertClass(data);
 
         res.status(201).json({ message: "Data is successfully inserted", data });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -88,8 +88,8 @@ async function update(req: Request, res: Response) {
         await updateClass(data);
 
         res.status(201).json({ message: "Data is successfully updated", data });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -108,8 +108,8 @@ async function remove(req: Request, res: Response) {
         await updateClass({ id, deleted: true });
 
         res.status(201).json({ message: "Data is successfully deleted" });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 

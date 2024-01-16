@@ -96,7 +96,7 @@ async function getClassById(id: any) {
                 deleted: false
             }
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -106,7 +106,7 @@ async function insertClass(data: any = {}) {
         return prisma.classes.create({
             data: data
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -119,7 +119,7 @@ async function updateClass(data: any = {}) {
             },
             data: data
         });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }

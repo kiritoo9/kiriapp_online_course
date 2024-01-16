@@ -45,8 +45,8 @@ async function login(req: Request, res: Response) {
          * Response
          */
         return res.status(200).json({ token });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 
 }

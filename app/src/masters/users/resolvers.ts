@@ -9,7 +9,13 @@ import {
     updateUser,
     getRoleByUser,
     insertUserRole,
-    updateUserRole
+    updateUserRole,
+    updateUserRoleByUser,
+    getUserValuesByUser,
+    getUserValueByAttribute,
+    insertUserValue,
+    updateUserValue,
+    updateUserValueByUser
 } from "./businesses";
 
 import {
@@ -24,6 +30,10 @@ const schema = Joi.object({
     phone: Joi.string().allow(null),
     address: Joi.string().allow(null),
     password: Joi.string().allow(null),
+    attributes: Joi.array().items(Joi.object({
+        role_attribute_id: Joi.string().required(),
+        value: Joi.string().required()
+    })).allow(null)
 });
 
 async function list(req: Request, res: Response) {
@@ -32,8 +42,8 @@ async function list(req: Request, res: Response) {
         const totalPage = await counts(req);
 
         res.status(200).json({ data, totalPage });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -41,12 +51,22 @@ async function detail(req: Request, res: Response) {
     try {
         const id = req.params.id;
 
-        const data = await getUserById(id);
+        let data: any = await getUserById(id);
         if (!data) return res.status(404).json({ message: "Data is not found" });
 
+        /**
+         * Get user role
+         */
+        data.roles = await getRoleByUser(data.id);
+
+        /**
+         * Get user value
+         */
+        data.attributes = await getUserValuesByUser(data.id);
+
         res.status(200).json({ data });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -56,6 +76,11 @@ async function insert(req: Request, res: Response) {
         await schema.validateAsync(req.body);
 
         let body = req.body;
+        const role_id = body.role_id;
+        const attributes: any = body.attributes;
+
+        delete body.role_id;
+        delete body.attributes;
 
         /**
          * Validate password
@@ -74,8 +99,6 @@ async function insert(req: Request, res: Response) {
         /**
          * Check existing role_id
          */
-        const role_id = body.role_id;
-        delete body.role_id;
         const role_exists = await getRoleById(role_id);
         if (!role_exists) return res.status(404).json({ message: "role_id is not found or already deleted, try another one" });
 
@@ -103,14 +126,29 @@ async function insert(req: Request, res: Response) {
         await insertUserRole(user_role);
 
         /**
+         * Prepare and insert into user_values
+         */
+        await Promise.all(attributes.map(async (v: any) => {
+            const user_values = {
+                id: uuidv4(),
+                user_id: user.id,
+                role_attribute_id: v.role_attribute_id,
+                value: v.value,
+                created_at: new Date(),
+                created_by: "INJECTED"
+            }
+            await insertUserValue(user_values);
+        }));
+
+        /**
          * Response
          */
         res.status(201).json({
             message: "Data created",
-            data: { user, user_role }
+            data: { user, user_role, attributes }
         });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -177,19 +215,48 @@ async function update(req: Request, res: Response) {
             });
         }
 
+        /**
+         * Update user values
+         */
+        await Promise.all(body.attributes.map(async (v: any) => {
+            const value_exists = await getUserValueByAttribute(data.id, v.role_attribute_id);
+            let user_value: any = {
+                user_id: data.id,
+                role_attribute_id: v.role_attribute_id,
+                value: v.value
+            }
+
+            if (value_exists) {
+                user_value["id"] = value_exists.id;
+                user_value["updated_at"] = new Date(),
+                    user_value["updated_by"] = "INJECTED";
+                await updateUserValue(user_value);
+            } else {
+                user_value["id"] = uuidv4();
+                user_value["created_at"] = new Date(),
+                    user_value["created_by"] = "INJECTED";
+                await insertUserValue(user_value);
+            }
+        }));
+
         res.status(201).json({
             message: "Data is successfully updated",
             data
         })
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
 async function remove(req: Request, res: Response) {
     try {
         const id = req.params.id;
+        const exists = await getUserById(id);
+        if (!exists) return res.status(404).json({ message: "Data is not found" });
 
+        /**
+         * Update user
+         */
         await updateUser({
             id,
             deleted: true,
@@ -197,9 +264,25 @@ async function remove(req: Request, res: Response) {
             updated_by: "INJECTED"
         });
 
+        /**
+         * Update user roles
+         */
+        await updateUserRoleByUser({
+            user_id: id,
+            deleted: true
+        });
+
+        /**
+         * Update user values
+         */
+        await updateUserValueByUser({
+            user_id: id,
+            deleted: true
+        });
+
         res.status(201).json({ message: "Data is successfully deleted" });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 

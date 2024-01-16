@@ -33,8 +33,8 @@ async function list(req: Request, res: Response) {
             data,
             totalPage
         });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -47,8 +47,8 @@ async function detail(req: Request, res: Response) {
         const attributes = await getAttributesByRole(id);
 
         res.status(200).json({ data, attributes });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
@@ -157,7 +157,7 @@ async function update(req: Request, res: Response) {
         })));
 
         res.status(201).json({ message: "Data is successfully updated", data: { role, attributes } });
-    } catch (error) {
+    } catch (error:any) {
         throw error;
     }
 }
@@ -181,8 +181,8 @@ async function remove(req: Request, res: Response) {
         }, true);
 
         res.status(201).json({ message: "Data is successfully deleted" });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error:any) {
+        res.status(400).json({ error: error?.message });
     }
 }
 
