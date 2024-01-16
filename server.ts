@@ -13,6 +13,7 @@ import { verify } from "./app/middlewares/verify";
  */
 import { welcome } from "./app/src/welcome/routes";
 import { auth } from "./app/src/auth/routes";
+import { roles } from "./app/src/masters/roles/routes";
 import { users } from "./app/src/masters/users/routes";
 import { lessons } from "./app/src/masters/lessons/routes";
 import { classes } from "./app/src/masters/classes/routes";
@@ -46,6 +47,7 @@ app.use("/auth", auth);
  * Masters
  */
 app.use("/users", verify, users);
+app.use("/roles", verify, roles);
 app.use("/lessons", verify, lessons);
 app.use("/classes", verify, classes);
 app.use("/tags", verify, tags);
