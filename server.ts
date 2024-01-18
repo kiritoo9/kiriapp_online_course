@@ -18,6 +18,7 @@ import { users } from "./app/src/masters/users/routes";
 import { lessons } from "./app/src/masters/lessons/routes";
 import { classes } from "./app/src/masters/classes/routes";
 import { tags } from "./app/src/masters/tags/routes";
+import { exams } from "./app/src/exams/exams/routes";
 
 const app = express();
 
@@ -51,6 +52,11 @@ app.use("/roles", verify, roles);
 app.use("/lessons", verify, lessons);
 app.use("/classes", verify, classes);
 app.use("/tags", verify, tags);
+
+/**
+ * Exams
+ */
+app.use("/exams", verify, exams);
 
 /**
  * Routes error handler
