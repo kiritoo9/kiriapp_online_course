@@ -18,6 +18,7 @@ import { users } from "./app/src/masters/users/routes";
 import { lessons } from "./app/src/masters/lessons/routes";
 import { classes } from "./app/src/masters/classes/routes";
 import { tags } from "./app/src/masters/tags/routes";
+import { questions } from "./app/src/exams/questions/routes";
 import { exams } from "./app/src/exams/exams/routes";
 
 const app = express();
@@ -56,6 +57,7 @@ app.use("/tags", verify, tags);
 /**
  * Exams
  */
+app.use("/questions", verify, questions);
 app.use("/exams", verify, exams);
 
 /**

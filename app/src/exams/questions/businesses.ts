@@ -25,7 +25,7 @@ async function lists(req: Request) {
     let offset = 0;
     if (page > 0 && limit > 0) offset = (page * limit) - limit;
 
-    let data = await prisma.exams.findMany({
+    let data = await prisma.questions.findMany({
         take: parseInt(limit),
         skip: offset,
         orderBy: defaultOrder,
@@ -41,14 +41,7 @@ async function lists(req: Request) {
             OR: [
                 {
                     deleted: false,
-                    title: {
-                        contains: keywords,
-                        mode: "insensitive"
-                    }
-                },
-                {
-                    deleted: false,
-                    description: {
+                    question: {
                         contains: keywords,
                         mode: "insensitive"
                     }
@@ -63,19 +56,12 @@ async function counts(req: Request) {
     let limit: any = req.query?.limit !== undefined ? req.query.limit : 10;
     let keywords: string = req.query?.keywords !== undefined ? req.query.keywords.toString() : "";
 
-    let count = await prisma.exams.count({
+    let count = await prisma.questions.count({
         where: {
             OR: [
                 {
                     deleted: false,
-                    title: {
-                        contains: keywords,
-                        mode: "insensitive"
-                    }
-                },
-                {
-                    deleted: false,
-                    description: {
+                    question: {
                         contains: keywords,
                         mode: "insensitive"
                     }
@@ -90,12 +76,12 @@ async function counts(req: Request) {
     return totalPage;
 }
 
-async function getExamById(id: any) {
+async function getQuestionById(id: any) {
     try {
-        return await prisma.exams.findFirst({
+        return await prisma.questions.findFirst({
             where: {
-                deleted: false,
-                id
+                id,
+                deleted: false
             },
             include: {
                 lessons: {
@@ -111,19 +97,12 @@ async function getExamById(id: any) {
     }
 }
 
-async function getClassByExam(exam_id: any) {
+async function getAnswersByQuestion(question_id: any) {
     try {
-        return await prisma.exam_classes.findMany({
+        return await prisma.answers.findMany({
             where: {
-                exam_id: exam_id,
-                deleted: false
-            },
-            include: {
-                classes: {
-                    select: {
-                        name: true
-                    }
-                }
+                deleted: false,
+                question_id
             }
         });
     } catch (error) {
@@ -131,19 +110,25 @@ async function getClassByExam(exam_id: any) {
     }
 }
 
-async function insertExam(data: any = {}) {
+async function insertQuestion(data: any = {}) {
     try {
-        return await prisma.exams.create({
-            data
-        });
+        return await prisma.questions.create({ data });
     } catch (error) {
         throw error;
     }
 }
 
-async function updateExam(data: any = {}) {
+async function insertAnswer(data: any = {}) {
     try {
-        return await prisma.exams.update({
+        return await prisma.answers.create({ data });
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function updateQuestion(data: any = {}) {
+    try {
+        return await prisma.questions.update({
             where: {
                 id: data?.id
             },
@@ -154,36 +139,13 @@ async function updateExam(data: any = {}) {
     }
 }
 
-async function insertExamClass(data: any = {}) {
+async function updateAnswersByQuestion(data: any = {}) {
     try {
-        return await prisma.exam_classes.create({ data });
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function updateExamClassByExam(data: any = {}) {
-    try {
-        return await prisma.exam_classes.updateMany({
+        return await prisma.answers.updateMany({
             where: {
-                exam_id: data?.exam_id
+                question_id: data?.question_id
             },
             data
-        });
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function deleteClassExamById(id: any) {
-    try {
-        return await prisma.exam_classes.update({
-            where: {
-                id
-            },
-            data: {
-                deleted: true
-            }
         });
     } catch (error) {
         throw error;
@@ -193,11 +155,10 @@ async function deleteClassExamById(id: any) {
 export {
     lists,
     counts,
-    getExamById,
-    getClassByExam,
-    insertExam,
-    updateExam,
-    insertExamClass,
-    updateExamClassByExam,
-    deleteClassExamById
+    getQuestionById,
+    getAnswersByQuestion,
+    insertQuestion,
+    insertAnswer,
+    updateQuestion,
+    updateAnswersByQuestion
 }
