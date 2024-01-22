@@ -15,7 +15,9 @@ import {
     getCountQuestionByExam,
     getExamQuestionById,
     insertExamQuestion,
-    updateExamQuestion
+    updateExamQuestion,
+    getAssignByExam,
+    insertAssign
 } from "./businesses";
 
 import Joi from "joi";
@@ -302,6 +304,43 @@ async function removeQuestion(req: Request, res: Response) {
     }
 }
 
+/**
+ * Exams - Assigns
+ */
+
+async function assigns(req: Request, res: Response) {
+    try {
+        const exam_id = req.params.exam_id;
+        const exams = await getExamById(exam_id);
+        if (!exams) return res.status(404).json({ message: "Data is not found" });
+
+        /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
+        /**
+         * Prepare, validate and insert
+         */
+        const data = {
+            id: uuidv4(),
+            exam_id: exams.id,
+            user_id: loggedId,
+            status: "S1",
+            created_at: new Date(),
+            created_by: loggedId
+        }
+
+        const exists = await getAssignByExam(exam_id, loggedId);
+        if (exists) return res.status(200).json({ message: "You are already assigned", exists })
+        await insertAssign(data);
+
+        res.status(201).json({ message: "You are successfully assigned to this exam", data });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
+    }
+}
+
 export {
     list,
     detail,
@@ -310,5 +349,6 @@ export {
     remove,
     listQuestions,
     insertQuestions,
-    removeQuestion
+    removeQuestion,
+    assigns
 }

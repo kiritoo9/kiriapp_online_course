@@ -301,6 +301,37 @@ async function updateExamQuestion(data: any) {
     }
 }
 
+async function getAssignByExam(exam_id: any, user_id: any = null) {
+    try {
+        if (user_id) {
+            return await prisma.exam_assigns.findFirst({
+                where: {
+                    exam_id,
+                    user_id,
+                    deleted: false
+                }
+            });
+        } else {
+            return await prisma.exam_assigns.findMany({
+                where: {
+                    deleted: false,
+                    exam_id
+                }
+            });
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function insertAssign(data: any = {}) {
+    try {
+        return await prisma.exam_assigns.create({ data });
+    } catch (error) {
+        throw error;
+    }
+}
+
 export {
     lists,
     counts,
@@ -315,5 +346,7 @@ export {
     getCountQuestionByExam,
     getExamQuestionById,
     insertExamQuestion,
-    updateExamQuestion
+    updateExamQuestion,
+    getAssignByExam,
+    insertAssign
 }

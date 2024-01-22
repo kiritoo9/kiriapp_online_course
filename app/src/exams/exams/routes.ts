@@ -8,7 +8,8 @@ import {
     remove,
     listQuestions,
     insertQuestions,
-    removeQuestion
+    removeQuestion,
+    assigns
 } from "./resolvers";
 
 class ExamsRoute {
@@ -36,8 +37,9 @@ class ExamsRoute {
         this.router.put("/questions/:id", removeQuestion);
 
         /**
-         * Exams - Result
+         * Exams - Assign
          */
+        this.router.get("/assigns/:exam_id", assigns);
     }
 
 }
