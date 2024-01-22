@@ -9,7 +9,8 @@ import {
     insertQuestion,
     insertAnswer,
     updateQuestion,
-    updateAnswersByQuestion
+    updateAnswersByQuestion,
+    updateAnswerById
 } from "./businesses";
 
 import Joi from "joi";
@@ -28,8 +29,10 @@ const schema = Joi.object({
         filetype: Joi.string().allow(null)
     })).default([]),
     answers: Joi.array().items(Joi.object({
+        id: Joi.string().allow(null),
         answer: Joi.string().required(),
         points: Joi.number().default(0),
+        true_answer: Joi.boolean().default(false),
         attachments: Joi.array().items(Joi.object({
             filename: Joi.string().required(),
             filesize: Joi.string().allow(null),
@@ -123,6 +126,7 @@ async function insert(req: Request, res: Response) {
                 question_id: data.id,
                 answer: v.answer,
                 points: parseInt(v.points),
+                true_answer: v.true_answer,
                 attachments: JSON.stringify(answerAttachments),
                 created_at: new Date(),
                 created_by: loggedId
@@ -136,7 +140,97 @@ async function insert(req: Request, res: Response) {
 }
 
 async function update(req: Request, res: Response) {
+    try {
+        const body = req.body;
+        await schema.validateAsync(body);
 
+        const id = req.params.id;
+        const exists = await getQuestionById(id);
+        if (!exists) return res.status(404).json({ message: "Data is not found" });
+
+        /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
+        /**
+         * Prepare and update data
+         */
+
+        let tags: any = [];
+        for (let i = 0; i < body.tags; i++) {
+            tags.push(body.tags[i].tag_id);
+        }
+
+        let attachments: any = [];
+        for (let i = 0; i < body.attachments.length; i++) {
+            /**
+             * Upload image/file to cdns/ folder
+             */
+        }
+
+        let data: any = {
+            id: exists.id,
+            lesson_id: body.lesson_id,
+            type: body.type,
+            question: body.question,
+            points: parseInt(body.points),
+            tags: JSON.stringify(tags),
+            attachments: JSON.stringify(attachments),
+            updated_at: new Date(),
+            updated_by: loggedId
+        }
+        await updateQuestion(data);
+
+        /**
+         * Compare data from body with existing answers
+         * if there is no data in existing answers, then delete it
+         */
+        let answers = await getAnswersByQuestion(data.id);
+        await Promise.all(answers.map((async (v: any) => {
+            const x = body.answers.find((x: any) => x.id == v.id);
+            if (x === undefined) {
+                await updateAnswerById({
+                    id: v.id,
+                    deleted: true,
+                    updated_at: new Date(),
+                    updated_by: loggedId
+                });
+            }
+        })));
+
+        /**
+         * Compare data from body with existing answers
+         * if there is no data from body, then insert it
+         */
+        answers = await getAnswersByQuestion(data.id);
+        await Promise.all(body.answers.map(async (v: any) => {
+            const x = answers.find((x: any) => x.id == v.id);
+            if (x === undefined) {
+                let answerAttachments: any = [];
+                for (let i = 0; i < v.attachments.length; i++) {
+                    /**
+                     * Upload image/file to cdns/ folder
+                     */
+                }
+
+                await insertAnswer({
+                    id: uuidv4(),
+                    question_id: data.id,
+                    answer: v.answer,
+                    points: parseInt(v.points),
+                    true_answer: v.true_answer,
+                    attachments: JSON.stringify(answerAttachments),
+                    created_at: new Date(),
+                    created_by: loggedId
+                })
+            }
+        }));
+
+        res.status(201).json({ message: "Data is successfully updated", data });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
+    }
 }
 
 async function remove(req: Request, res: Response) {

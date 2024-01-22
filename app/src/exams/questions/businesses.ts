@@ -152,6 +152,19 @@ async function updateAnswersByQuestion(data: any = {}) {
     }
 }
 
+async function updateAnswerById(data: any) {
+    try {
+        return await prisma.answers.update({
+            where: {
+                id: data?.id
+            },
+            data
+        })
+    } catch (error) {
+        throw error;
+    }
+}
+
 export {
     lists,
     counts,
@@ -160,5 +173,6 @@ export {
     insertQuestion,
     insertAnswer,
     updateQuestion,
-    updateAnswersByQuestion
+    updateAnswersByQuestion,
+    updateAnswerById
 }
