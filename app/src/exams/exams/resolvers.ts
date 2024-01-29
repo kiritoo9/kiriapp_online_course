@@ -17,11 +17,15 @@ import {
     insertExamQuestion,
     updateExamQuestion,
     getAssignByExam,
-    insertAssign
+    insertAssign,
+    getUserAnswerByExam,
+    insertUserAnswer,
+    updateUserAnswerById
 } from "./businesses";
 
 import Joi from "joi";
 import { getToken } from "../../../helpers/token";
+import { getAnswersByQuestion } from "../questions/businesses";
 const schema = Joi.object({
     lesson_id: Joi.string().required(),
     type: Joi.string().required(),
@@ -232,8 +236,15 @@ const questionSchema = Joi.object({
 async function listQuestions(req: Request, res: Response) {
     try {
         const exam_id = req.params.exam_id;
-        const data = await getQuestionsByExam(req, exam_id);
+        let data: any = await getQuestionsByExam(req, exam_id);
         const totalPage = await getCountQuestionByExam(req, exam_id);
+
+        /**
+         * Get answers
+         */
+        await Promise.all(data.map(async (v: any, i: any) => {
+            data[i].answers = await getAnswersByQuestion(v.question_id, true);
+        }));
 
         res.status(200).json({
             data,
@@ -341,6 +352,100 @@ async function assigns(req: Request, res: Response) {
     }
 }
 
+/**
+ * Exams - Submit
+ */
+
+const syncSchema = Joi.object({
+    data: Joi.array().items(Joi.object({
+        exam_question_id: Joi.string().required(),
+        question_id: Joi.string().required(),
+        answer_id: Joi.string().allow(null),
+        answer_text: Joi.string().allow(null),
+        answered_at: Joi.string().allow(null),
+        correction_points: Joi.number().default(0)
+    }))
+});
+
+async function sync(req: Request, res: Response) {
+    /**
+     * This function will called repeatly per-10mins from frontend
+     * Record every answers to database to prevent computer shut down or another hardware troubles
+     */
+    try {
+        /**
+         * Check existing exam
+         */
+        const exam_id = req.params.exam_id;
+        const exam = await getExamById(exam_id);
+        if (!exam) return res.status(404).json({ message: "Data is not found" });
+
+        /**
+         * Validate body input
+         */
+        const body = req.body;
+        await syncSchema.validateAsync(body);
+
+        /**
+         * Get user login from token
+         */
+        const loggedId = await getToken(req, "user_id");
+
+        /**
+         * Prepare data to update
+         */
+        let temp_answers = await getUserAnswerByExam(exam_id, loggedId);
+        await Promise.all(body.map(async (v: any) => {
+            const answered = v.answered_at ? v.answered_at : new Date();
+            /**
+             * Update answer if user already answered it before
+             * Otherwise insert the answer
+             */
+            const x = temp_answers.findIndex((x: any) => x.exam_question_id === v.exam_question_id);
+            if (x < 0) {
+                await insertUserAnswer({
+                    id: uuidv4(),
+                    exam_question_id: v.exam_question_id,
+                    user_id: loggedId,
+                    question_id: v.question_id,
+                    answer_id: v.answer_id,
+                    answer_text: v.answer_text,
+                    correction_points: v.correction_points,
+                    answered_at: answered,
+                    created_at: new Date(),
+                    created_by: loggedId
+                });
+            } else {
+                await updateUserAnswerById({
+                    id: temp_answers[x].id,
+                    answer_id: v.answer_id,
+                    answer_text: v.answer_text,
+                    correction_points: v.correction_points,
+                    answered_at: answered,
+                    updated_at: new Date(),
+                    updated_by: loggedId
+                });
+            }
+        }));
+
+        res.status(201).json({ message: "Your answer is successfully saved", body });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
+    }
+}
+
+async function submit(req: Request, res: Response) {
+    try {
+
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
+    }
+}
+
+/**
+ * Exports
+ */
+
 export {
     list,
     detail,
@@ -350,5 +455,7 @@ export {
     listQuestions,
     insertQuestions,
     removeQuestion,
-    assigns
+    assigns,
+    sync,
+    submit
 }

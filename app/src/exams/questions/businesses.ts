@@ -97,13 +97,23 @@ async function getQuestionById(id: any) {
     }
 }
 
-async function getAnswersByQuestion(question_id: any) {
+async function getAnswersByQuestion(question_id: any, limitField = false) {
     try {
+        let select: any = {};
+        if(limitField) {
+            select = {
+                id: true,
+                answer: true,
+                points: true,
+                attachments: true
+            }
+        }
         return await prisma.answers.findMany({
             where: {
                 deleted: false,
                 question_id
-            }
+            },
+            select
         });
     } catch (error) {
         throw error;

@@ -9,7 +9,9 @@ import {
     listQuestions,
     insertQuestions,
     removeQuestion,
-    assigns
+    assigns,
+    sync,
+    submit
 } from "./resolvers";
 
 class ExamsRoute {
@@ -34,12 +36,18 @@ class ExamsRoute {
          */
         this.router.get("/questions/:exam_id", listQuestions);
         this.router.post("/questions/:exam_id", insertQuestions);
-        this.router.put("/questions/:id", removeQuestion);
+        this.router.delete("/questions/:id", removeQuestion);
 
         /**
          * Exams - Assign
          */
         this.router.get("/assigns/:exam_id", assigns);
+
+        /**
+         * Exams - Submit
+         */
+        this.router.post("/sync/:exam_id", sync);
+        this.router.post("/submit/:exam_id", submit);
     }
 
 }

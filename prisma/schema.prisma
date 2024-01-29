@@ -139,32 +139,36 @@ model exam_user_answers {
   created_by        String?         @db.VarChar(200)
   updated_at        DateTime?       @db.Timestamp(6)
   updated_by        String?         @db.VarChar(200)
+  submitted         Boolean?        @default(false)
+  exam_id           String?         @db.Uuid
   exam_questions    exam_questions? @relation(fields: [exam_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exams             exams?          @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "exam_user_answers_fk")
   questions         questions?      @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users             users?          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model exams {
-  id             String           @id @db.Uuid
-  lesson_id      String?          @db.Uuid
-  type           String?          @default("T1") @db.Char(2)
-  status         String?          @default("S1") @db.Char(2)
-  duration       Decimal?         @default(0) @db.Decimal
-  minimum_result Float?           @default(0)
-  title          String?
-  description    String?
-  author         String?
-  deleted        Boolean?         @default(false)
-  created_at     DateTime?        @db.Timestamp(6)
-  created_by     String?          @db.VarChar(200)
-  updated_at     DateTime?        @db.Timestamp(6)
-  updated_by     String?          @db.VarChar(200)
-  exam_assigns   exam_assigns[]
-  exam_classes   exam_classes[]
-  exam_questions exam_questions[]
-  exam_results   exam_results[]
-  lessons        lessons?         @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                String              @id @db.Uuid
+  lesson_id         String?             @db.Uuid
+  type              String?             @default("T1") @db.Char(2)
+  status            String?             @default("S1") @db.Char(2)
+  duration          Decimal?            @default(0) @db.Decimal
+  minimum_result    Float?              @default(0)
+  title             String?
+  description       String?
+  author            String?
+  deleted           Boolean?            @default(false)
+  created_at        DateTime?           @db.Timestamp(6)
+  created_by        String?             @db.VarChar(200)
+  updated_at        DateTime?           @db.Timestamp(6)
+  updated_by        String?             @db.VarChar(200)
+  exam_assigns      exam_assigns[]
+  exam_classes      exam_classes[]
+  exam_questions    exam_questions[]
+  exam_results      exam_results[]
+  exam_user_answers exam_user_answers[]
+  lessons           lessons?            @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model lessons {

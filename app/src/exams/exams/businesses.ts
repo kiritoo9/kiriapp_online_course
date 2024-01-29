@@ -332,6 +332,41 @@ async function insertAssign(data: any = {}) {
     }
 }
 
+async function getUserAnswerByExam(exam_id: any, user_id: any) {
+    try {
+        return await prisma.exam_user_answers.findMany({
+            where: {
+                deleted: false,
+                exam_id,
+                user_id
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function insertUserAnswer(data: any = {}) {
+    try {
+        return await prisma.exam_user_answers.create({ data });
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function updateUserAnswerById(data: any = {}) {
+    try {
+        return await prisma.exam_user_answers.update({
+            where: {
+                id: data?.id
+            },
+            data
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
 export {
     lists,
     counts,
@@ -348,5 +383,8 @@ export {
     insertExamQuestion,
     updateExamQuestion,
     getAssignByExam,
-    insertAssign
+    insertAssign,
+    getUserAnswerByExam,
+    insertUserAnswer,
+    updateUserAnswerById
 }

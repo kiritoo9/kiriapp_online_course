@@ -46,7 +46,7 @@ app.use("/", welcome);
 app.use("/auth", auth);
 
 /**
- * Masters
+ * Masters  
  */
 app.use("/users", verify, users);
 app.use("/roles", verify, roles);
